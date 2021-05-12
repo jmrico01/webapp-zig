@@ -34,14 +34,14 @@ const vertexShader =
     \\attribute vec4 a_position;
     \\uniform vec4 u_offset;
     \\void main() {
-    \\  gl_Position = a_position + u_offset;
+    \\    gl_Position = a_position + u_offset;
     \\}
 ;
 
 const fragmentShader =
     \\precision mediump float;
     \\void main() {
-    \\ gl_FragColor = vec4(0.3, 0.6, 1.0, 1.0);
+    \\    gl_FragColor = vec4(0.3, 0.6, 1.0, 1.0);
     \\}
 ;
 
@@ -65,9 +65,8 @@ export fn onInit() void
     program_id = linkShaderProgram(vertex_shader_id, fsId);
 
     const a_position = "a_position";
-    const u_offset = "u_offset";
-
     positionAttributeLocation = glGetAttribLocation(program_id, &a_position[0], a_position.len);
+    const u_offset = "u_offset";
     offsetUniformLocation = glGetUniformLocation(program_id, &u_offset[0], u_offset.len);
 
     positionBuffer = glCreateBuffer();
@@ -75,14 +74,15 @@ export fn onInit() void
     glBufferData(GL_ARRAY_BUFFER, &positions[0], 6, GL_STATIC_DRAW);
 }
 
-var previous: c_int = 0;
+var timestampMsPrev: c_int = 0;
 var x: f32 = 0;
 
-export fn onAnimationFrame(timestamp: c_int) void
+export fn onAnimationFrame(timestampMs: c_int) void
 {
-    const delta = if (previous > 0) (timestamp - previous) else 0;
+    const deltaMs = if (timestampMsPrev > 0) (timestampMs - timestampMsPrev) else 0;
 
-    x += @intToFloat(f32, delta) / 1000.0;
+    const speed = 1.0;
+    x += @intToFloat(f32, deltaMs) / 1000.0 * speed;
     if (x > 1) {
         x = -2;
     }
@@ -95,5 +95,5 @@ export fn onAnimationFrame(timestamp: c_int) void
     glVertexAttribPointer(@intCast(c_uint, positionAttributeLocation), 2, GL_f32, 0, 0, 0);
     glUniform4fv(offsetUniformLocation, x, 0.0, 0.0, 0.0);
     glDrawArrays(GL_TRIANGLES, 0, 3);
-    previous = timestamp;
+    timestampMsPrev = timestampMs;
 }
